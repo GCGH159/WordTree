@@ -124,6 +124,8 @@ System.out.println(trie.search("app"));         // false
 
 如果您有任何疑问或建议，请通过 [gcgh159@qq.com](slixils159@gmail.com) 联系我们。
 
+由于整个单词树比较大，200M无法上传，请联系我！
+
 ---
 
 ## TODO
