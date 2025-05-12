@@ -1,4 +1,5 @@
-package org.jeecg.common.util.v1;
+package com.slixils.v1;
+
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import lombok.extern.slf4j.Slf4j;
@@ -525,7 +526,7 @@ class WordTree {
             try {
                 tree.insert(wordWithTranslation[0], wordWithTranslation[1]);
             } catch (Exception e) {
-                throw new RuntimeException(e);
+//                throw new RuntimeException(e);
             }
         }
 //        System.out.println(tree.toJson());
