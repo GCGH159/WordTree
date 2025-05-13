@@ -7,6 +7,43 @@ h1 { text-align: center; color: #2c3e50; margin-bottom: 28px; }
 .word-form button:hover, .search-form button:hover { background: #217dbb; }
 #result { margin-top: 20px; font-size: 16px; min-height: 24px; text-align: left; /* 改为左对齐以适应树形结构 */ }
 
+.current-word-display h2 {
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.current-word-display .content b {
+    font-size: 1.2em;
+}
+
+.tree-section {
+    margin-bottom: 15px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #f9f9f9;
+}
+
+.tree-section h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 1.1em;
+    cursor: pointer;
+}
+
+.tree-section h3 .section-toggler {
+    margin-right: 8px;
+    font-family: monospace;
+    display: inline-block;
+    width: 15px;
+    text-align: center;
+}
+
+.tree-section.collapsed > ul {
+    display: none;
+}
+
 .tree-node {
     margin-bottom: 5px;
     padding-left: 20px; /* 基本缩进 */
@@ -32,11 +69,15 @@ h1 { text-align: center; color: #2c3e50; margin-bottom: 28px; }
     visibility: hidden; /* 没有子节点时隐藏 +/- */
 }
 
-.tree-node ul {
+.tree-node ul, .tree-section > ul {
     list-style-type: none;
     padding-left: 20px; /* 子节点额外缩进 */
     margin-top: 5px;
     border-left: 1px dashed #ccc; /* 连接线 */
+}
+
+.tree-section > ul {
+    padding-left: 5px; /* 区域内的第一层列表不需要太深的额外缩进 */
 }
 
 .tree-node.collapsed > ul {
@@ -57,8 +98,10 @@ h1 { text-align: center; color: #2c3e50; margin-bottom: 28px; }
     border: 1px solid #f7e0c3;
 }
 
-.current-word > .content {
+.current-word-display .content {
     background-color: #e6ffe6;
     border: 1px solid #c3f7c3;
-    font-size: 1.1em;
+    padding: 5px 8px;
+    border-radius: 3px;
+    display: inline-block;
 }

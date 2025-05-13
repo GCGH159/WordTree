@@ -62,32 +62,40 @@ $(document).ready(function() {
                     $('#result').empty(); // 清空之前的结果
 
                     if (data && !data.message) {
-                        // 构建树形结构的 HTML
-                        function buildTreeHtml(node, type, isRoot) {
+                        $('#result').empty(); // 清空之前的结果
+
+                        // 构建当前单词的HTML
+                        var currentWordHtml = '<div class="current-word-display">';
+                        currentWordHtml += '<h2><span class="content"><b>' + data.word + '</b>: ' + data.translation + '</span></h2>';
+                        currentWordHtml += '</div>';
+                        $('#result').append(currentWordHtml);
+
+                        // 辅助函数：构建单个节点的HTML（用于父节点或子节点列表）
+                        function buildNodeHtml(node, type) {
                             var hasChildren = (node.children && node.children.length > 0);
                             var hasParents = (node.parents && node.parents.length > 0);
-                            var isCollapsible = hasChildren || hasParents;
+                            // 对于父/子列表中的节点，我们主要关心它自身是否有下一级子节点用于展开
+                            var isCollapsible = (type === 'parent' && hasParents) || (type === 'child' && hasChildren);
 
-                            var liClass = 'tree-node';
-                            if (isRoot) liClass += ' current-word';
-                            else if (type === 'parent') liClass += ' parent-node';
-                            else if (type === 'child') liClass += ' child-node';
-                            if (isCollapsible) liClass += ' collapsed'; // 默认折叠
+                            var liClass = 'tree-node ' + type + '-node';
+                            // 子节点或父节点列表中的项默认折叠其下一级
+                            if (isCollapsible) liClass += ' collapsed';
 
                             var html = '<li class="' + liClass + '">';
-                            html += '<span class="toggler">' + (isCollapsible ? '[+]' : '&nbsp;&nbsp;&nbsp;') + '</span>'; // 如果有子节点或父节点，显示展开/折叠按钮
+                            html += '<span class="toggler">' + (isCollapsible ? '[+]' : '&nbsp;&nbsp;&nbsp;') + '</span>';
                             html += '<span class="content"><b>' + node.word + '</b>: ' + node.translation + '</span>';
 
+                            // 如果这个节点本身还有子节点（对于子节点列表）或父节点（对于父节点列表），则递归构建
                             if (isCollapsible) {
                                 html += '<ul>';
-                                if (node.parents && node.parents.length > 0) {
-                                    node.parents.forEach(function(parent) {
-                                        html += buildTreeHtml(parent, 'parent', false);
+                                if (type === 'parent' && node.parents && node.parents.length > 0) {
+                                    node.parents.forEach(function(p) {
+                                        html += buildNodeHtml(p, 'parent'); // 递归父节点
                                     });
                                 }
-                                if (node.children && node.children.length > 0) {
-                                    node.children.forEach(function(child) {
-                                        html += buildTreeHtml(child, 'child', false);
+                                if (type === 'child' && node.children && node.children.length > 0) {
+                                    node.children.forEach(function(c) {
+                                        html += buildNodeHtml(c, 'child'); // 递归子节点
                                     });
                                 }
                                 html += '</ul>';
@@ -96,20 +104,52 @@ $(document).ready(function() {
                             return html;
                         }
 
-                        var treeRootHtml = '<ul>' + buildTreeHtml(data, 'current', true) + '</ul>';
-                        $('#result').html(treeRootHtml);
+                        // 构建父节点区域
+                        if (data.parents && data.parents.length > 0) {
+                            var parentsHtml = '<div class="parent-section tree-section collapsed">';
+                            parentsHtml += '<h3><span class="section-toggler">[+]</span> 父节点</h3>';
+                            parentsHtml += '<ul>';
+                            data.parents.forEach(function(parent) {
+                                parentsHtml += buildNodeHtml(parent, 'parent');
+                            });
+                            parentsHtml += '</ul></div>';
+                            $('#result').append(parentsHtml);
+                        }
 
-                        // 添加展开/折叠事件监听
-                        $('#result').off('click', '.toggler').on('click', '.toggler', function() {
+                        // 构建子节点区域
+                        if (data.children && data.children.length > 0) {
+                            var childrenHtml = '<div class="child-section tree-section collapsed">';
+                            childrenHtml += '<h3><span class="section-toggler">[+]</span> 子节点</h3>';
+                            childrenHtml += '<ul>';
+                            data.children.forEach(function(child) {
+                                childrenHtml += buildNodeHtml(child, 'child');
+                            });
+                            childrenHtml += '</ul></div>';
+                            $('#result').append(childrenHtml);
+                        }
+
+                        // 添加节点展开/折叠事件监听
+                        $('#result').off('click', '.toggler').on('click', '.toggler', function(e) {
+                            e.stopPropagation(); // 防止事件冒泡到section-toggler
                             var $toggler = $(this);
-                            var $parentNode = $toggler.closest('.tree-node');
-                            if ($parentNode.children('ul').length > 0) { // 确保有子列表才切换
-                                $parentNode.toggleClass('collapsed');
-                                if ($parentNode.hasClass('collapsed')) {
-                                    $toggler.text('[+]');
-                                } else {
-                                    $toggler.text('[-]');
-                                }
+                            var $node = $toggler.closest('.tree-node');
+                            if ($node.children('ul').length > 0) {
+                                $node.toggleClass('collapsed');
+                                $toggler.text($node.hasClass('collapsed') ? '[+]' : '[-]');
+                            }
+                        });
+
+                        // 添加区域展开/折叠事件监听
+                        $('#result').off('click', '.section-toggler').on('click', '.section-toggler', function() {
+                            var $toggler = $(this);
+                            var $section = $toggler.closest('.tree-section');
+                            $section.toggleClass('collapsed');
+                            $toggler.text($section.hasClass('collapsed') ? '[+]' : '[-]');
+                            // 折叠区域时，确保其内部所有节点也恢复到折叠状态的显示
+                            if ($section.hasClass('collapsed')) {
+                                $section.find('.tree-node:not(.collapsed)').addClass('collapsed');
+                                $section.find('.toggler').text('[+]'); //  确保所有toggler都是[+]
+                                $section.find('.toggler.empty').html('&nbsp;&nbsp;&nbsp;'); // 空toggler保持不变
                             }
                         });
 
