@@ -10,10 +10,12 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-
+import java.io.Serializable;
 // 定义 WordTree 类
 @Slf4j
-public class WordTree {
+public class WordTree implements Serializable {
+
+    private static final long serialVersionUID = 1L;
     private TrieNode root;
 
     /**

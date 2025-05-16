@@ -88,6 +88,24 @@ h1 { text-align: center; color: #2c3e50; margin-bottom: 28px; }
     font-weight: bold;
 }
 
+.word-pronounce {
+    cursor: pointer;
+    position: relative;
+    transition: color 0.2s;
+}
+
+.word-pronounce:hover {
+    color: #3498db;
+}
+
+.word-pronounce:hover::after {
+    content: '🔊';
+    font-size: 0.8em;
+    margin-left: 4px;
+    position: relative;
+    top: -2px;
+}
+
 .parent-node > .content {
     background-color: #e9f5ff;
     border: 1px solid #c3e0f7;

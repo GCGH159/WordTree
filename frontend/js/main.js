@@ -1,6 +1,51 @@
 // main.js
 // 负责前端与后端的Ajax交互及页面事件绑定
 
+/**
+ * 文本转语音功能
+ * @param {string} text - 需要转换为语音的文本
+ * @param {string} voice - 语音类型，默认为中文女声
+ * @param {number} rate - 语速，默认为0
+ * @param {number} pitch - 语调，默认为0
+ */
+function textToSpeech(text, voice = 'zh-CN-XiaoxiaoNeural', rate = 0, pitch = 0) {
+    // 创建一个新的XMLHttpRequest对象
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', 'https://tts.ciallo.de/api/tts', true);
+    xhr.responseType = 'blob'; // 设置响应类型为blob
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.setRequestHeader('accept', 'audio/mpeg');
+    
+    // 当请求完成时的处理函数
+    xhr.onload = function() {
+        if (xhr.status === 200) {
+            // 创建一个Blob对象
+            const blob = new Blob([xhr.response], { type: 'audio/mpeg' });
+            // 创建一个URL对象
+            const url = URL.createObjectURL(blob);
+            // 创建一个audio元素
+            const audio = new Audio(url);
+            // 播放音频
+            audio.play();
+            // 播放完成后释放URL对象
+            audio.onended = function() {
+                URL.revokeObjectURL(url);
+            };
+        } else {
+            console.error('TTS请求失败:', xhr.status);
+        }
+    };
+    
+    // 发送请求
+    xhr.send(JSON.stringify({
+        text: text,
+        voice: voice,
+        rate: rate,
+        pitch: pitch,
+        preview: false
+    }));
+}
+
 $(document).ready(function() {
     // 添加单词
     $('#addWord').click(function() {
@@ -11,7 +56,7 @@ $(document).ready(function() {
             return;
         }
         $.ajax({
-            url: 'http://localhost:8081/api/words/addWord',
+            url: 'http://localhost:8080/api/words/addWord',
             type: 'POST',
             contentType: 'application/json',
             data: JSON.stringify({word: word, meaning: meaning}),
@@ -33,7 +78,7 @@ $(document).ready(function() {
             return;
         }
         $.ajax({
-            url: 'http://localhost:8081/api/words/update',
+            url: 'http://localhost:8080/api/words/update',
             type: 'PUT',
             contentType: 'application/json',
             data: JSON.stringify({word: word, meaning: meaning}),
@@ -54,7 +99,7 @@ $(document).ready(function() {
             return;
         }
         $.ajax({
-            url: 'http://localhost:8081/api/words/queryWord/' + encodeURIComponent(word),
+            url: 'http://localhost:8080/api/words/queryWord/' + encodeURIComponent(word),
             type: 'GET',
             success: function(res) {
                 try {
@@ -66,7 +111,7 @@ $(document).ready(function() {
 
                         // 构建当前单词的HTML
                         var currentWordHtml = '<div class="current-word-display">';
-                        currentWordHtml += '<h2><span class="content"><b>' + data.word + '</b>: ' + data.translation + '</span></h2>';
+                        currentWordHtml += '<h2><span class="content"><b class="word-pronounce">' + data.word + '</b>: ' + data.translation + '</span></h2>';
                         currentWordHtml += '</div>';
                         $('#result').append(currentWordHtml);
 
@@ -83,7 +128,7 @@ $(document).ready(function() {
 
                             var html = '<li class="' + liClass + '">';
                             html += '<span class="toggler">' + (isCollapsible ? '[+]' : '&nbsp;&nbsp;&nbsp;') + '</span>';
-                            html += '<span class="content"><b>' + node.word + '</b>: ' + node.translation + '</span>';
+                            html += '<span class="content"><b class="word-pronounce">' + node.word + '</b>: ' + node.translation + '</span>';
 
                             // 如果这个节点本身还有子节点（对于子节点列表）或父节点（对于父节点列表），则递归构建
                             if (isCollapsible) {
@@ -151,6 +196,12 @@ $(document).ready(function() {
                                 $section.find('.toggler').text('[+]'); //  确保所有toggler都是[+]
                                 $section.find('.toggler.empty').html('&nbsp;&nbsp;&nbsp;'); // 空toggler保持不变
                             }
+                        });
+                        
+                        // 添加单词发音功能
+                        $('#result').off('click', '.word-pronounce').on('click', '.word-pronounce', function() {
+                            var word = $(this).text();
+                            textToSpeech(word);
                         });
 
                     } else {

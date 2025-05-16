@@ -4,11 +4,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 
 import java.util.*;
-
+import java.io.Serializable;
 // 定义 TrieNode 类
 @Data
-public class TrieNode {
 
+public class TrieNode implements Serializable {
+    private static final long serialVersionUID = 1L;
     String word;
     String translation;
     String ushone;
